@@ -20,10 +20,15 @@ for _d in (DATA_DIR, OUTPUT_DIR, LOG_DIR):
     _d.mkdir(parents=True, exist_ok=True)
 
 # ─── Load .env ───────────────────────────────────────────────────────────────
-load_dotenv(ROOT_DIR / ".env")
+load_dotenv(ROOT_DIR / ".env", override=True)
 
 # ─── API Keys ─────────────────────────────────────────────────────────────────
 COMPOSIO_API_KEY: str | None = os.getenv("COMPOSIO_API_KEY")
+
+if COMPOSIO_API_KEY:
+    masked_key = f"{COMPOSIO_API_KEY[:6]}...{COMPOSIO_API_KEY[-4:]}"
+    print(f"Using Composio key: {masked_key}")
+
 GITHUB_TOKEN:     str | None = os.getenv("GITHUB_TOKEN")     # For GitHub Models API
 TAVILY_API_KEY:   str | None = os.getenv("TAVILY_API_KEY")
 OPENAI_API_KEY:   str | None = os.getenv("OPENAI_API_KEY")   # fallback
@@ -33,6 +38,10 @@ GITHUB_MODEL_BASE_URL = os.getenv("GITHUB_MODEL_BASE_URL", "https://models.githu
 LLM_MODEL         = os.getenv("LLM_MODEL", "openai/gpt-5")
 LLM_TEMPERATURE   = float(os.getenv("LLM_TEMPERATURE", "0.1"))
 LLM_MAX_TOKENS    = int(os.getenv("LLM_MAX_TOKENS", "4096"))
+
+VERIFIER_LLM_PROVIDER    = os.getenv("VERIFIER_LLM_PROVIDER", "github").lower()
+VERIFIER_LLM_MODEL       = os.getenv("VERIFIER_LLM_MODEL", "gpt-4o-mini")
+VERIFIER_LLM_TEMPERATURE = float(os.getenv("VERIFIER_LLM_TEMPERATURE", "0.0"))
 
 # ─── Pipeline settings ────────────────────────────────────────────────────────
 BATCH_SIZE          = int(os.getenv("BATCH_SIZE", "10"))       # concurrent app batches

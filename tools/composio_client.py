@@ -8,7 +8,7 @@ Exact API used (Composio v0.17.x):
 
     composio = Composio(provider=LangchainProvider(), api_key=COMPOSIO_API_KEY)
     session  = composio.create(          # shortcut for composio.sessions.create()
-        user_id="agentforge-researcher",
+        user_id=COMPOSIO_USER_ID,
         manage_connections={"wait_for_connections": True},
     )
     tools = session.tools()              # returns list[StructuredTool] for LangChain
@@ -26,6 +26,10 @@ from config import (
 )
 
 logger = logging.getLogger(__name__)
+
+class ComposioToolError(Exception):
+    """Exception raised when a Composio tool is unavailable or fails."""
+    pass
 
 # ─── Composio session (lazy singleton) ───────────────────────────────────────
 
@@ -51,7 +55,6 @@ def _build_composio_session():
         )
 
         # composio.create is a top-level shortcut for composio.sessions.create()
-        # Confirmed in composio SDK source: self.create = self._sessions.create
         session = composio.create(
             user_id=COMPOSIO_USER_ID,
             manage_connections={
@@ -64,8 +67,14 @@ def _build_composio_session():
         return session
 
     except Exception as exc:
+        exc_str = str(exc)
+        if "user_id does not match the user this playground API key is locked to" in exc_str or "10403" in exc_str:
+            raise RuntimeError(
+                "COMPOSIO_API_KEY is still a playground key — replace it in .env with a standard project API key."
+            ) from exc
+            
         logger.warning(
-            "⚠️  Could not create Composio session: %s — falling back to Tavily + httpx.",
+            "⚠️  Could not create Composio session: %s — falling back to native tools.",
             exc,
         )
         return None
@@ -74,10 +83,6 @@ def _build_composio_session():
 def get_composio_tools() -> list:
     """
     Return LangChain-compatible tools from the Composio session.
-
-    Returns:
-        List of LangChain StructuredTool objects (from session.tools()), or []
-        if Composio is unavailable. Graceful degradation — never raises.
     """
     global _composio_tools
 
@@ -85,19 +90,53 @@ def get_composio_tools() -> list:
         logger.debug("Composio search disabled — COMPOSIO_API_KEY not set.")
         return []
 
-    session = _build_composio_session()
-    if session is None:
+    # Ensure session is successfully created (also acts as auth check)
+    if _build_composio_session() is None:
         return []
 
     try:
-        tools = session.tools()   # returns list[StructuredTool] via LangchainProvider
+        from composio import Composio
+        from composio_langchain import LangchainProvider
+        composio = Composio(provider=LangchainProvider(), api_key=COMPOSIO_API_KEY)
+        tools = composio.tools.get(user_id=COMPOSIO_USER_ID, toolkits=['composio_search'])
         _composio_tools = list(tools) if tools else []
-        logger.info("🔧 Loaded %d Composio tools from session", len(_composio_tools))
+        logger.info("🔧 Loaded %d Composio tools from session (using composio_search)", len(_composio_tools))
         return _composio_tools
 
     except Exception as exc:
         logger.warning("⚠️  session.tools() failed: %s", exc)
         return []
+
+
+def execute_composio_tool(tool_type: str, params: dict) -> str:
+    """
+    Execute a Composio tool natively by matching the tool_type ('search' or 'fetch').
+    Raises ComposioToolError if not found or execution fails.
+    """
+    tools = get_composio_tools()
+    if not tools:
+        raise ComposioToolError("Composio is not configured or unavailable.")
+
+    # Find the requested tool fuzzily
+    target_tool = None
+    for tool in tools:
+        if tool_type == "search" and ("search" in tool.name.lower() or "tavily" in tool.name.lower()):
+            target_tool = tool
+            break
+        elif tool_type == "fetch" and ("fetch" in tool.name.lower() or "scrape" in tool.name.lower() or "browser" in tool.name.lower() or "extract" in tool.name.lower()):
+            target_tool = tool
+            break
+
+    if not target_tool:
+        raise ComposioToolError(f"No active Composio tool found for type: {tool_type}")
+
+    logger.info("🚀 Composio tool invoked: %s", target_tool.name)
+    try:
+        result = target_tool.invoke(params)
+        return str(result)
+    except Exception as exc:
+        logger.error("Composio tool %s failed: %s", target_tool.name, exc)
+        raise ComposioToolError(str(exc)) from exc
 
 
 def get_search_tools_for_agent() -> list:

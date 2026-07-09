@@ -69,6 +69,7 @@ class VerificationStatus(str, Enum):
     HUMAN_CHECKED = "human-checked"
     UNRESOLVED    = "unresolved"
     PENDING       = "pending"
+    FAILED        = "failed"
 
 
 # ─── Sub-models ──────────────────────────────────────────────────────────────
@@ -108,6 +109,9 @@ class AppRecord(BaseModel):
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
     verification_status: VerificationStatus = VerificationStatus.PENDING
     verifier_notes: str = ""
+    fetch_tool: str = "Unknown"
+    tool_source: str = "Unknown"
+    failure_reason: Optional[str] = None
     raw_llm_response: str = ""  # stored for debugging/audit
 
     class Config:
@@ -134,6 +138,9 @@ class VerificationLog(BaseModel):
     status: VerificationStatus
     corrections: list[VerificationRecord] = Field(default_factory=list)
     verifier_notes: str = ""
+    fetch_tool: str = "Unknown"
+    tool_source: str = "Unknown"
+    failure_reason: Optional[str] = None
 
 
 # ─── Insights ─────────────────────────────────────────────────────────────────

@@ -1,0 +1,36 @@
+{
+  "id": 2,
+  "app": "HubSpot",
+  "category": "CRM and Sales",
+  "one_line": "Inbound marketing and CRM platform for SMBs and enterprises.",
+  "auth_methods": [
+    "OAuth2"
+  ],
+  "access_model": "self-serve",
+  "api_surface": {
+    "types": [
+      "REST"
+    ],
+    "breadth": "broad",
+    "webhooks": true,
+    "rate_limits_documented": true,
+    "notes": "REST API v3+; API Key deprecated for private apps, OAuth2 for public."
+  },
+  "existing_mcp": {
+    "exists": true,
+    "link": "https://github.com/HubSpot/hubspot-mcp-server",
+    "official": true
+  },
+  "developer_portal_url": "https://developers.hubspot.com",
+  "buildable_today": true,
+  "blocker": "none",
+  "evidence_url": "https://developers.hubspot.com/docs/api/overview",
+  "secondary_evidence_urls": [],
+  "confidence": 0.97,
+  "verification_status": "corrected",
+  "verifier_notes": "not explicitly stated",
+  "fetch_tool": "composio",
+  "tool_source": "composio",
+  "failure_reason": null,
+  "raw_llm_response": ""
+}

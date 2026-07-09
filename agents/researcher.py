@@ -58,6 +58,7 @@ def _get_llm():
         base_url=GITHUB_MODEL_BASE_URL if GITHUB_TOKEN else None,
         temperature=LLM_TEMPERATURE,
         max_tokens=LLM_MAX_TOKENS,
+        max_retries=0,
     )
 
 # ─── Graph State ─────────────────────────────────────────────────────────────
@@ -74,6 +75,9 @@ class ResearchState(TypedDict):
     search_results: list[dict]
     page_text: str
     evidence_url: str
+    fetch_tool: str
+    tool_source: str
+    failure_reason: str
 
     # Output
     extraction: dict       # Raw LLM extraction
@@ -142,10 +146,16 @@ def plan_search_node(state: ResearchState) -> ResearchState:
 def execute_search_node(state: ResearchState) -> ResearchState:
     """Run the search queries and collect results."""
     all_results: list[dict] = []
+    tool_source = "Unknown"
+    failure_reason = ""
 
     for query in state["search_queries"][:3]:   # max 3 queries per app
-        results = web_search_sync(query, max_results=4)
+        results, t_source, reason = web_search_sync(query, max_results=4)
         all_results.extend(results)
+        if t_source != "Unknown":
+            tool_source = t_source
+        if reason:
+            failure_reason = reason
 
     # Deduplicate by URL
     seen_urls: set[str] = set()
@@ -156,7 +166,7 @@ def execute_search_node(state: ResearchState) -> ResearchState:
             seen_urls.add(url)
             deduped.append(r)
 
-    return {**state, "search_results": deduped[:12]}
+    return {**state, "search_results": deduped[:12], "tool_source": tool_source, "failure_reason": failure_reason or ""}
 
 
 def fetch_docs_node(state: ResearchState) -> ResearchState:
@@ -181,14 +191,22 @@ def fetch_docs_node(state: ResearchState) -> ResearchState:
 
     page_text = ""
     evidence_url = ""
+    fetch_tool = "Unknown"
+    tool_source = state.get("tool_source", "Unknown")
+    failure_reason = state.get("failure_reason", "")
 
     for url in candidates[:4]:     # try up to 4 URLs
-        text = fetch_page_sync(url)
+        text, tool_used, reason = fetch_page_sync(url)
         if text and len(text) > 300:
             page_text = text
             evidence_url = url
-            logger.debug("✓ Fetched %d chars from %s", len(text), url)
+            fetch_tool = tool_used
+            tool_source = tool_used
+            failure_reason = reason or ""
+            logger.debug("✓ Fetched %d chars from %s via %s", len(text), url, tool_used)
             break
+        elif reason:
+            failure_reason = reason
 
     # If we couldn't fetch, use search snippets as context
     if not page_text:
@@ -198,8 +216,12 @@ def fetch_docs_node(state: ResearchState) -> ResearchState:
         )
         page_text = snippets or "No documentation found."
         evidence_url = results[0]["url"] if results else ""
+        fetch_tool = "Search Snippets"
+        tool_source = "Search Snippets"
+        if not failure_reason:
+            failure_reason = "no_docs_found"
 
-    return {**state, "page_text": page_text, "evidence_url": evidence_url}
+    return {**state, "page_text": page_text, "evidence_url": evidence_url, "fetch_tool": fetch_tool, "tool_source": tool_source, "failure_reason": failure_reason}
 
 
 def extract_info_node(state: ResearchState) -> ResearchState:
@@ -227,11 +249,19 @@ Hint URL: {state.get('hint_url', 'N/A')}
 
 Extract the integration metadata JSON for {app}."""
 
-    try:
-        response = llm.invoke([
+    from tenacity import retry, stop_after_attempt, wait_exponential
+
+    @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=2, min=2, max=60))
+    def _call_llm():
+        import time
+        time.sleep(2.5)
+        return llm.invoke([
             SystemMessage(content=EXTRACTION_SYSTEM_PROMPT),
             HumanMessage(content=user_msg),
         ])
+
+    try:
+        response = _call_llm()
         raw_text = response.content.strip()
 
         # Strip markdown fences if present
@@ -244,10 +274,11 @@ Extract the integration metadata JSON for {app}."""
 
     except json.JSONDecodeError as exc:
         logger.error("JSON parse error for %s: %s", app, exc)
-        return {**state, "extraction": {}, "error": f"JSON parse error: {exc}"}
+        return {**state, "extraction": {}, "error": f"JSON parse error: {exc}", "failure_reason": "json_parse_error"}
     except Exception as exc:
         logger.error("LLM error for %s: %s", app, exc)
-        return {**state, "extraction": {}, "error": str(exc)}
+        reason = "llm_verification_429_exhausted" if "429" in str(exc) else "llm_error"
+        return {**state, "extraction": {}, "error": str(exc), "failure_reason": reason}
 
 
 def build_record_node(state: ResearchState) -> ResearchState:
@@ -267,6 +298,8 @@ def build_record_node(state: ResearchState) -> ResearchState:
             confidence=0.0,
             verification_status=VerificationStatus.NEEDS_HUMAN,
             verifier_notes=state.get("error", "Unknown error"),
+            tool_source=state.get("tool_source", "Unknown"),
+            failure_reason=state.get("failure_reason"),
         )
         return {**state, "final_record": record.model_dump()}
 
@@ -324,6 +357,9 @@ def build_record_node(state: ResearchState) -> ResearchState:
         secondary_evidence_urls=ext.get("secondary_urls", []),
         confidence=float(ext.get("confidence", 0.5)),
         verification_status=VerificationStatus.PENDING,
+        fetch_tool=state.get("fetch_tool", "Unknown"),
+        tool_source=state.get("tool_source", "Unknown"),
+        failure_reason=state.get("failure_reason"),
         raw_llm_response=json.dumps(ext),
     )
 
@@ -381,6 +417,9 @@ def research_app(app_id: int, app_name: str, category: str, hint_url: str) -> Ap
         "search_results": [],
         "page_text": "",
         "evidence_url": "",
+        "fetch_tool": "Unknown",
+        "tool_source": "Unknown",
+        "failure_reason": "",
         "extraction": {},
         "final_record": {},
         "error": "",

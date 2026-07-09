@@ -1,4 +1,4 @@
-# AgentForge — Autonomous API Research & Verification System
+# API Research — Autonomous API Research & Verification System
 
 > **Composio 100-App Research Assignment** · Built to automate the manual work of researching SaaS app integration readiness.
 
@@ -10,7 +10,7 @@
 
 ## What This Is
 
-AgentForge is an autonomous research pipeline that investigates 100 SaaS applications and answers:
+API-Research is an autonomous research pipeline that investigates 100 SaaS applications and answers:
 - What auth method does each app use (OAuth2, API Key, etc.)?
 - Is developer access self-serve or gated behind sales/partnerships?
 - Does a public REST/GraphQL API exist?
@@ -21,9 +21,13 @@ It does this **without human input** — and then verifies its own output with a
 
 ---
 
-## Architecture
+## Architecture & Models
 
-```
+The pipeline uses state-of-the-art LLMs via GitHub Models (with OpenAI fallbacks) to process web data.
+- **Research Pass:** Uses `openai/gpt-5` for deep web extraction.
+- **Verification Pass:** Uses `gpt-4o-mini` to independently verify the researcher's claims.
+
+```text
 100 apps (apps.json)
        │
        ▼
@@ -31,14 +35,14 @@ It does this **without human input** — and then verifies its own output with a
        │
        ▼
 [Research Worker]       ← web search + doc fetch + LLM extraction
-  (LangGraph DAG)         Gemini 2.0 Flash | Tavily | httpx
+  (LangGraph DAG)         gpt-5 | Composio
        │
        ▼
 [raw_pass1.json]        ← 100 structured records + confidence scores
        │
        ▼
 [Verification Agent]    ← independently re-fetches evidence, re-derives answers
-  (LangGraph DAG)         Never sees researcher's answers — genuine independence
+  (LangGraph DAG)         gpt-4o-mini (Never sees researcher's answers)
        │
        ▼
 [pass2_verified.json]   ← corrections applied, verification status per app
@@ -50,13 +54,47 @@ It does this **without human input** — and then verifies its own output with a
 [HTML Report Generator] ← single self-contained report.html
 ```
 
-Both LangGraph graphs are **strictly acyclic (DAGs)** — no cycles, no deadlocks, hard `recursion_limit` set.
+---
+
+## Verification & Proof
+
+The system maintains a comprehensive log of its execution and generates a detailed HTML report for review.
+
+- **Pipeline Log:** [View pipeline.log](./pipeline.log)
+- **Final Report:** [View report.html](./report.html)
+
+### Pipeline Run Proof
+
+Below is the execution summary demonstrating a complete and successful run of all 100 applications, including pass 1 vs pass 2 verifications and final metrics:
+
+![Pipeline Final Output](./pipeline_proof.png)
+
+*(Note: The above image placeholder points to `pipeline_proof.png` in the repository root. Please ensure your attached screenshot is saved there with this name.)*
+
+```text
+=== Final Verification Summary ===
+Total Apps Processed: 100
+Total Corrected: 65
+Total Failed: 1
+Average Confidence: 0.87
+Pass1 -> Pass2 match: 35.0%
+
+Phase 3: Generating insights...
+INFO        💡 Insights saved -> E:\api-research\output\insights.json
+
+Pipeline complete!
+Auth dominant: API Key
+Buildable today: 87/100
+Easy wins: 65
+MCP coverage: 30/100
+Avg confidence: 0.87
+```
 
 ---
 
 ## Composio SDK Usage
 
-The pipeline uses [Composio's Python SDK](https://composio.dev) as the tool layer for search and fetch:
+The pipeline primarily relies on **Composio as the tool-execution layer** for web search and URL fetching operations.
 
 ```python
 from composio import Composio
@@ -68,7 +106,7 @@ composio = Composio(
 )
 
 session = composio.create(
-    user_id="agentforge-researcher",
+    user_id=COMPOSIO_USER_ID, # Ensure this matches your playground bound user
     manage_connections={
         "wait_for_connections": True,
     },
@@ -77,7 +115,11 @@ session = composio.create(
 tools = session.tools()  # LangChain-compatible tool list
 ```
 
-Without `COMPOSIO_API_KEY`, the pipeline gracefully falls back to Tavily + httpx — the logic is identical.
+**What tools are used?**
+- **Search**: We fuzzy-match the available tools for `TAVILY_SEARCH` or equivalent `search` tools.
+- **Fetch**: We fuzzy-match for `BROWSER_FETCH`, `scrape`, or equivalent fetching tools.
+
+If Composio is unavailable (e.g., API key not set, playground user ID mismatch, or rate limits), the pipeline falls back gracefully to `TavilyClient` for search and `httpx` + `BeautifulSoup4` for content fetching.
 
 ---
 
@@ -96,18 +138,19 @@ pip install -r requirements.txt
 ```bash
 cp .env.example .env
 # Edit .env and add your API keys:
-#   GEMINI_API_KEY   (required)  — https://aistudio.google.com
-#   TAVILY_API_KEY   (recommended) — https://app.tavily.com
-#   COMPOSIO_API_KEY (optional)  — https://app.composio.dev
+#   GITHUB_TOKEN      (required)    - For GitHub Models (gpt-5, gpt-4o-mini)
+#   OPENAI_API_KEY    (optional)    - Fallback LLM provider
+#   TAVILY_API_KEY    (recommended) - Web search
+#   COMPOSIO_API_KEY  (optional)    - Composio SDK tools
 ```
 
 ### 3. Run the full pipeline
 
 ```bash
-python -m agentforge.main run
+python main.py run
 ```
 
-This runs all stages end-to-end and produces `report.html`.
+This runs all stages end-to-end and produces the `report.html`.
 
 ### 4. View the report
 
@@ -119,25 +162,25 @@ Open `report.html` in any browser — it's fully self-contained.
 
 ```bash
 # Full pipeline (research → verify → insights → report)
-python -m agentforge.main run
+python main.py run
 
 # Research only (faster, no verification)
-python -m agentforge.main research
+python main.py research
 
 # Verify existing pass-1 results
-python -m agentforge.main verify
+python main.py verify
 
 # Generate insights from verified results
-python -m agentforge.main insights
+python main.py insights
 
 # Generate HTML report
-python -m agentforge.main report
+python main.py report
 
 # Export to CSV
-python -m agentforge.main export
+python main.py export
 
 # Skip verification (faster, less accurate)
-python -m agentforge.main run --skip-verify
+python main.py run --skip-verify
 ```
 
 ---
@@ -152,81 +195,16 @@ python -m agentforge.main run --skip-verify
 | `output/insights.json` | Computed statistics and patterns |
 | `report.html` | Self-contained interactive HTML report |
 | `output/apps.csv` | CSV export of all records |
-| `logs/pipeline.log` | Full execution log |
-
----
-
-## Directory Structure
-
-```
-api-research/
-├── agentforge/
-│   ├── agents/
-│   │   ├── researcher.py      # LangGraph research DAG
-│   │   ├── verifier.py        # LangGraph verification DAG
-│   │   └── insight_generator.py
-│   ├── tools/
-│   │   ├── composio_client.py # Composio SDK integration
-│   │   ├── search.py          # Tavily + fallback
-│   │   └── fetcher.py         # httpx page fetcher
-│   ├── models/
-│   │   └── schema.py          # Pydantic data models
-│   ├── pipeline/
-│   │   ├── runner.py          # Async batch orchestrator
-│   │   └── normalizer.py      # Enum normalization
-│   ├── report/
-│   │   └── generator.py       # HTML report builder
-│   ├── data/
-│   │   └── apps.json          # 100-app input dataset
-│   ├── config.py              # All settings from env vars
-│   └── main.py                # CLI entrypoint
-├── output/                    # Generated data files
-├── logs/                      # Execution logs
-├── requirements.txt
-├── .env.example
-└── README.md
-```
+| `pipeline.log` / `logs/pipeline.log` | Full execution logs |
 
 ---
 
 ## Verification Methodology
 
-1. **Pass 1** — Research agent extracts from web search + docs
-2. **Pass 2** — Verifier agent re-fetches the same evidence URL independently
-3. The verifier uses a different system prompt and **never sees the researcher's answers**
-4. Corrections are applied only at confidence ≥ 60%
-5. Remaining `needs-human` rows are **flagged, not hidden**
-6. Manual spot-check on 15–20 stratified rows (2 per category) records final ground truth
+1. **Pass 1** — Research agent extracts from web search + docs using `gpt-5`.
+2. **Pass 2** — Verifier agent re-fetches the same evidence URL independently using `gpt-4o-mini`.
+3. The verifier uses a different system prompt and **never sees the researcher's answers**.
+4. Corrections are applied based on confidence scores.
+5. Remaining `needs-human` rows are **flagged, not hidden**.
 
-This produces a measurable accuracy delta: Pass 1 → Pass 2.
-
----
-
-## Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `GEMINI_API_KEY` | ✅ Required | Gemini LLM for extraction and verification |
-| `TAVILY_API_KEY` | ⭐ Recommended | Web search (1000 free/month) |
-| `COMPOSIO_API_KEY` | Optional | Composio SDK tools (search/fetch layer) |
-| `COMPOSIO_USER_ID` | Optional | Session user ID (default: `agentforge-researcher`) |
-| `BATCH_SIZE` | Optional | Concurrent app batch size (default: 10) |
-| `GEMINI_MODEL` | Optional | Model name (default: `gemini-2.0-flash-exp`) |
-
----
-
-## Known Limitations
-
-- Apps with no public developer docs (Fanbasis, iPayX, Paygent Connect) are flagged as `needs-human` — this is the correct finding, not a failure.
-- Some enterprise platforms (DealCloud, Gladly, PitchBook) require partnership before API access — documented as `contact-sales`.
-- Rate limits on Gemini free tier may slow batch processing; the pipeline is resumable.
-
----
-
-## Live Report
-
-→ **[View report.html](./report.html)** (deploy to GitHub Pages for live URL)
-
----
-
-*Built with LangGraph + Gemini 2.0 Flash + Composio SDK + Tavily*
+This structure ensures a robust and measurable accuracy delta from Pass 1 to Pass 2.

@@ -48,58 +48,31 @@ def cli():
 @cli.command()
 @click.option("--skip-verify", is_flag=True, default=False, help="Skip verification pass")
 @click.option("--skip-insights", is_flag=True, default=False, help="Skip insight generation")
-def run(skip_verify: bool, skip_insights: bool):
+@click.option("--force", is_flag=True, default=False, help="Force rebuild (ignore checkpoints)")
+@click.option("--auto", is_flag=True, default=False, help="Run unattended (no confirmation gates)")
+def run(skip_verify: bool, skip_insights: bool, force: bool, auto: bool):
     """Run the complete research → verify → insights pipeline."""
     from pipeline.runner import run_pipeline
     console.print("[bold green]Starting AgentForge full pipeline…[/]")
-    run_pipeline(skip_verification=skip_verify, skip_insights=skip_insights)
+    run_pipeline(skip_verification=skip_verify, skip_insights=skip_insights, force=force, auto=auto)
 
 
 @cli.command()
-def research():
+@click.option("--force", is_flag=True, default=False, help="Force rebuild (ignore checkpoints)")
+def research(force: bool):
     """Research pass only — outputs raw_pass1.json."""
     from pipeline.runner import run_pipeline
-    run_pipeline(skip_verification=True, skip_insights=True)
+    run_pipeline(skip_verification=True, skip_insights=True, force=force)
 
 
 @cli.command()
-def verify():
+@click.option("--force", is_flag=True, default=False, help="Force rebuild (ignore checkpoints)")
+@click.option("--auto", is_flag=True, default=False, help="Run unattended (no confirmation gates)")
+def verify(force: bool, auto: bool):
     """Verification pass on existing pass-1 results — outputs pass2_verified.json."""
-    from config import RAW_PASS1_PATH, PASS2_PATH, VERIFY_LOG_PATH
-    from models.schema import AppRecord, VerificationLog
-    from agents.verifier import verify_app
-
-    if not RAW_PASS1_PATH.exists():
-        console.print("[red]Error:[/] raw_pass1.json not found. Run 'research' first.")
-        sys.exit(1)
-
-    records_data = json.loads(RAW_PASS1_PATH.read_text(encoding="utf-8"))
-    records = [AppRecord(**r) for r in records_data]
-
-    verified: list[AppRecord] = []
-    logs: list[VerificationLog] = []
-
-    import time
-    for rec in records:
-        console.print(f"  Verifying [cyan]{rec.app}[/]…")
-        try:
-            updated, log = verify_app(rec)
-            verified.append(updated)
-            logs.append(log)
-        except Exception as exc:
-            console.print(f"  [red]Error verifying {rec.app}:[/] {exc}")
-            verified.append(rec)
-        time.sleep(0.5)
-
-    PASS2_PATH.write_text(
-        json.dumps([r.model_dump() for r in verified], indent=2, default=str),
-        encoding="utf-8",
-    )
-    VERIFY_LOG_PATH.write_text(
-        json.dumps([log_entry.model_dump() for log_entry in logs], indent=2, default=str),
-        encoding="utf-8",
-    )
-    console.print(f"[green]✅ Verification complete → {PASS2_PATH}[/]")
+    from pipeline.runner import run_pipeline
+    # Call pipeline with skip_research=True, which we'll add
+    run_pipeline(skip_research=True, skip_insights=True, force=force, auto=auto)
 
 
 @cli.command()
@@ -194,6 +167,22 @@ def export():
             ])
 
     console.print(f"[green]✅ CSV exported → {csv_path}[/]")
+
+
+@cli.command()
+def check_composio():
+    """Verify Composio session creation with the current API key."""
+    from tools.composio_client import _build_composio_session
+    console.print("[cyan]Checking Composio session...[/]")
+    try:
+        session = _build_composio_session()
+        if session:
+            console.print("[bold green]✅ Success: Composio session created successfully.[/]")
+        else:
+            console.print("[bold yellow]⚠️  Failed to create session, but didn't raise a hard error (fallback triggered).[/]")
+    except Exception as exc:
+        console.print(f"[bold red]❌ Error:[/] {exc}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

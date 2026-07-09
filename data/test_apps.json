@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "app": "Salesforce",
+    "category": "CRM and Sales",
+    "hint": "developer.salesforce.com"
+  },
+  {
+    "id": 2,
+    "app": "HubSpot",
+    "category": "CRM and Sales",
+    "hint": "developers.hubspot.com"
+  }
+]

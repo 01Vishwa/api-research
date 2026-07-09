@@ -80,7 +80,7 @@ Average Confidence: 0.87
 Pass1 -> Pass2 match: 35.0%
 
 Phase 3: Generating insights...
-INFO        💡 Insights saved -> E:\api-research\output\insights.json
+INFO        💡 Insights saved -> api-research\output\insights.json
 
 Pipeline complete!
 Auth dominant: API Key

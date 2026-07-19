@@ -8,7 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from agents.verifier import verify_app
-from models.schema import AppRecord
+from schemas.schema import AppRecord
 
 async def main():
     app_id = 2

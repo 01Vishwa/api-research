@@ -11,7 +11,7 @@ import logging
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from models.schema import AppRecord, InsightStats
+from schemas.schema import AppRecord, InsightStats
 
 logger = logging.getLogger(__name__)
 

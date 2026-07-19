@@ -23,7 +23,7 @@ from config import (
     LANGGRAPH_RECURSION,
     LLM_MAX_TOKENS,
 )
-from models.schema import (
+from schemas.schema import (
     AppRecord,
     VerificationLog,
     VerificationRecord,

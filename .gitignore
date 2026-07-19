@@ -31,3 +31,5 @@ logs/*
 !logs/.gitkeep
 output/*
 !output/.gitkeep
+*.log
+*.pyc

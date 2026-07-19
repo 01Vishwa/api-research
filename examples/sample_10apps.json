@@ -1,0 +1,364 @@
+[
+  {
+    "id": 1,
+    "app": "Salesforce",
+    "category": "CRM and Sales",
+    "one_line": "Research failed \u2014 see error log",
+    "auth_methods": [],
+    "access_model": "unknown",
+    "api_surface": {
+      "types": [],
+      "breadth": "unknown",
+      "webhooks": false,
+      "rate_limits_documented": false,
+      "notes": ""
+    },
+    "existing_mcp": {
+      "exists": false,
+      "link": null,
+      "official": false
+    },
+    "developer_portal_url": null,
+    "buildable_today": null,
+    "blocker": "unknown",
+    "evidence_url": "",
+    "secondary_evidence_urls": [],
+    "confidence": 0.0,
+    "verification_status": "needs-human",
+    "verifier_notes": "RetryError[<Future at 0x2429b650770 state=finished raised RateLimitError>]",
+    "fetch_tool": "Unknown",
+    "tool_source": "composio",
+    "failure_reason": "llm_verification_429_exhausted",
+    "raw_llm_response": ""
+  },
+  {
+    "id": 2,
+    "app": "HubSpot",
+    "category": "CRM and Sales",
+    "one_line": "Inbound marketing and CRM platform for SMBs and enterprises.",
+    "auth_methods": [
+      "OAuth2"
+    ],
+    "access_model": "self-serve",
+    "api_surface": {
+      "types": [
+        "REST"
+      ],
+      "breadth": "broad",
+      "webhooks": true,
+      "rate_limits_documented": true,
+      "notes": "REST API v3+; API Key deprecated for private apps, OAuth2 for public."
+    },
+    "existing_mcp": {
+      "exists": true,
+      "link": "https://github.com/HubSpot/hubspot-mcp-server",
+      "official": true
+    },
+    "developer_portal_url": "https://developers.hubspot.com",
+    "buildable_today": true,
+    "blocker": "none",
+    "evidence_url": "https://developers.hubspot.com/docs/api/overview",
+    "secondary_evidence_urls": [],
+    "confidence": 0.97,
+    "verification_status": "corrected",
+    "verifier_notes": "not explicitly stated",
+    "fetch_tool": "composio",
+    "tool_source": "composio",
+    "failure_reason": null,
+    "raw_llm_response": ""
+  },
+  {
+    "id": 3,
+    "app": "Pipedrive",
+    "category": "CRM and Sales",
+    "one_line": "Sales-focused CRM with pipeline management and deal tracking.",
+    "auth_methods": [
+      "API Key"
+    ],
+    "access_model": "self-serve",
+    "api_surface": {
+      "types": [
+        "REST"
+      ],
+      "breadth": "broad",
+      "webhooks": true,
+      "rate_limits_documented": true,
+      "notes": "REST API v1; 100+ endpoints. Sandbox available on all plans."
+    },
+    "existing_mcp": {
+      "exists": false,
+      "link": null,
+      "official": false
+    },
+    "developer_portal_url": "https://developers.pipedrive.com",
+    "buildable_today": true,
+    "blocker": "none",
+    "evidence_url": "https://developers.pipedrive.com/docs/api/v1",
+    "secondary_evidence_urls": [],
+    "confidence": 0.96,
+    "verification_status": "corrected",
+    "verifier_notes": "The API token can be obtained manually from the Pipedrive app.",
+    "fetch_tool": "composio",
+    "tool_source": "composio",
+    "failure_reason": null,
+    "raw_llm_response": ""
+  },
+  {
+    "id": 4,
+    "app": "Attio",
+    "category": "CRM and Sales",
+    "one_line": "Modern API-first CRM with flexible data model and real-time collaboration.",
+    "auth_methods": [
+      "Unknown"
+    ],
+    "access_model": "self-serve",
+    "api_surface": {
+      "types": [
+        "REST"
+      ],
+      "breadth": "broad",
+      "webhooks": true,
+      "rate_limits_documented": true,
+      "notes": "REST API with OAuth2 and personal access tokens. Free developer tier."
+    },
+    "existing_mcp": {
+      "exists": true,
+      "link": "https://developers.attio.com/docs/mcp",
+      "official": true
+    },
+    "developer_portal_url": "https://developers.attio.com",
+    "buildable_today": true,
+    "blocker": "none",
+    "evidence_url": "https://developers.attio.com/reference/introduction",
+    "secondary_evidence_urls": [],
+    "confidence": 0.95,
+    "verification_status": "corrected",
+    "verifier_notes": "This allows developers to build apps that read and write information to and from Attio workspaces.",
+    "fetch_tool": "composio",
+    "tool_source": "composio",
+    "failure_reason": null,
+    "raw_llm_response": ""
+  },
+  {
+    "id": 5,
+    "app": "Twenty",
+    "category": "CRM and Sales",
+    "one_line": "Open-source CRM with self-hosted and cloud options.",
+    "auth_methods": [
+      "API Key",
+      "Bearer Token"
+    ],
+    "access_model": "self-serve",
+    "api_surface": {
+      "types": [
+        "REST",
+        "GraphQL"
+      ],
+      "breadth": "moderate",
+      "webhooks": true,
+      "rate_limits_documented": false,
+      "notes": "Open-source; REST and GraphQL APIs. Self-host or twenty.com cloud."
+    },
+    "existing_mcp": {
+      "exists": true,
+      "link": "https://github.com/twentyhq/twenty-mcp",
+      "official": false
+    },
+    "developer_portal_url": "https://twenty.com/developers",
+    "buildable_today": true,
+    "blocker": "none",
+    "evidence_url": "https://twenty.com/developers",
+    "secondary_evidence_urls": [
+      "https://github.com/twentyhq/twenty"
+    ],
+    "confidence": 0.88,
+    "verification_status": "corrected",
+    "verifier_notes": "API\nREST and GraphQL APIs, webhooks, and OAuth.",
+    "fetch_tool": "composio",
+    "tool_source": "composio",
+    "failure_reason": null,
+    "raw_llm_response": ""
+  },
+  {
+    "id": 6,
+    "app": "Podio",
+    "category": "CRM and Sales",
+    "one_line": "Collaborative work management and CRM platform by Citrix.",
+    "auth_methods": [
+      "OAuth2"
+    ],
+    "access_model": "self-serve",
+    "api_surface": {
+      "types": [
+        "REST"
+      ],
+      "breadth": "broad",
+      "webhooks": true,
+      "rate_limits_documented": true,
+      "notes": "REST API; OAuth2 required. Developer access on free plan."
+    },
+    "existing_mcp": {
+      "exists": false,
+      "link": null,
+      "official": false
+    },
+    "developer_portal_url": "https://developers.podio.com",
+    "buildable_today": true,
+    "blocker": "none",
+    "evidence_url": "https://developers.podio.com/doc",
+    "secondary_evidence_urls": [],
+    "confidence": 0.9,
+    "verification_status": "corrected",
+    "verifier_notes": "This API uses OAuth 2.",
+    "fetch_tool": "composio",
+    "tool_source": "composio",
+    "failure_reason": null,
+    "raw_llm_response": ""
+  },
+  {
+    "id": 7,
+    "app": "Zoho CRM",
+    "category": "CRM and Sales",
+    "one_line": "Full-featured cloud CRM with AI-powered sales tools.",
+    "auth_methods": [
+      "OAuth2"
+    ],
+    "access_model": "self-serve",
+    "api_surface": {
+      "types": [
+        "REST"
+      ],
+      "breadth": "broad",
+      "webhooks": true,
+      "rate_limits_documented": true,
+      "notes": "REST API v3; OAuth2 with multi-DC support. Free 15-day trial."
+    },
+    "existing_mcp": {
+      "exists": false,
+      "link": null,
+      "official": false
+    },
+    "developer_portal_url": "https://www.zoho.com/crm/developer/docs/api",
+    "buildable_today": true,
+    "blocker": "none",
+    "evidence_url": "https://www.zoho.com/crm/developer/docs/api/v3/overview.html",
+    "secondary_evidence_urls": [],
+    "confidence": 0.93,
+    "verification_status": "confirmed",
+    "verifier_notes": "not explicitly stated",
+    "fetch_tool": "composio",
+    "tool_source": "composio",
+    "failure_reason": null,
+    "raw_llm_response": ""
+  },
+  {
+    "id": 8,
+    "app": "Close",
+    "category": "CRM and Sales",
+    "one_line": "Sales CRM focused on inside sales with built-in calling and SMS.",
+    "auth_methods": [
+      "OAuth2",
+      "API Key"
+    ],
+    "access_model": "self-serve",
+    "api_surface": {
+      "types": [
+        "REST"
+      ],
+      "breadth": "moderate",
+      "webhooks": true,
+      "rate_limits_documented": true,
+      "notes": "REST API; API key based. Trial plan available."
+    },
+    "existing_mcp": {
+      "exists": false,
+      "link": null,
+      "official": false
+    },
+    "developer_portal_url": "https://developer.close.com",
+    "buildable_today": true,
+    "blocker": "none",
+    "evidence_url": "https://developer.close.com",
+    "secondary_evidence_urls": [],
+    "confidence": 0.92,
+    "verification_status": "corrected",
+    "verifier_notes": "API keys for scripts or OAuth 2.0 for user-facing integrations.",
+    "fetch_tool": "composio",
+    "tool_source": "composio",
+    "failure_reason": null,
+    "raw_llm_response": ""
+  },
+  {
+    "id": 9,
+    "app": "Copper",
+    "category": "CRM and Sales",
+    "one_line": "Google Workspace-native CRM with deep Gmail and Calendar integration.",
+    "auth_methods": [
+      "API Key"
+    ],
+    "access_model": "self-serve",
+    "api_surface": {
+      "types": [
+        "REST"
+      ],
+      "breadth": "moderate",
+      "webhooks": true,
+      "rate_limits_documented": true,
+      "notes": "REST API v1; API key auth. 14-day trial."
+    },
+    "existing_mcp": {
+      "exists": false,
+      "link": null,
+      "official": false
+    },
+    "developer_portal_url": "https://developer.copper.com",
+    "buildable_today": true,
+    "blocker": "none",
+    "evidence_url": "https://developer.copper.com/introduction/requests.html",
+    "secondary_evidence_urls": [],
+    "confidence": 0.91,
+    "verification_status": "corrected",
+    "verifier_notes": "All Copper API calls must include the following headers to authenticate the request: | Key | Value | | --- | --- | | X-PW-AccessToken | API Key |",
+    "fetch_tool": "composio",
+    "tool_source": "composio",
+    "failure_reason": null,
+    "raw_llm_response": ""
+  },
+  {
+    "id": 10,
+    "app": "DealCloud",
+    "category": "CRM and Sales",
+    "one_line": "CRM and deal management platform for private equity and investment banking.",
+    "auth_methods": [
+      "OAuth2",
+      "API Key"
+    ],
+    "access_model": "partner-gated",
+    "api_surface": {
+      "types": [
+        "REST"
+      ],
+      "breadth": "moderate",
+      "webhooks": false,
+      "rate_limits_documented": false,
+      "notes": "REST API; access requires enterprise contract. No self-serve."
+    },
+    "existing_mcp": {
+      "exists": false,
+      "link": null,
+      "official": false
+    },
+    "developer_portal_url": "https://api.docs.dealcloud.com",
+    "buildable_today": false,
+    "blocker": "partner-approval-required",
+    "evidence_url": "https://api.docs.dealcloud.com",
+    "secondary_evidence_urls": [],
+    "confidence": 0.82,
+    "verification_status": "confirmed",
+    "verifier_notes": "not explicitly stated",
+    "fetch_tool": "composio",
+    "tool_source": "composio",
+    "failure_reason": null,
+    "raw_llm_response": ""
+  }
+]

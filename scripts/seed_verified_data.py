@@ -18,7 +18,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from config import INSIGHTS_PATH, PASS2_PATH, RAW_PASS1_PATH
-from models.schema import (
+from schemas.schema import (
     APIType, AppRecord, APISurface, AuthMethod,
     Breadth, MCPInfo,
 )

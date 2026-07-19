@@ -60,8 +60,8 @@ The pipeline uses state-of-the-art LLMs via GitHub Models (with OpenAI fallbacks
 
 The system maintains a comprehensive log of its execution and generates a detailed HTML report for review.
 
-- **Pipeline Log:** [View pipeline.log](./pipeline.log)
-- **Final Report:** [View report.html](./report.html)
+- **Pipeline Log:** [View pipeline.log](./logs/pipeline.log)
+- **Final Report:** [View report.html](./report/report.html)
 
 ### Pipeline Run Proof
 
@@ -193,9 +193,9 @@ python main.py run --skip-verify
 | `output/pass2_verified.json` | After verification agent corrections |
 | `output/verification_log.json` | All corrections made by verifier |
 | `output/insights.json` | Computed statistics and patterns |
-| `report.html` | Self-contained interactive HTML report |
+| `report/report.html` | Self-contained interactive HTML report |
 | `output/apps.csv` | CSV export of all records |
-| `pipeline.log` / `logs/pipeline.log` | Full execution logs |
+| `logs/pipeline.log` | Full execution logs |
 
 ---
 

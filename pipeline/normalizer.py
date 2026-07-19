@@ -5,7 +5,7 @@ Keeps enum parsing + correction logic in one place.
 
 from __future__ import annotations
 
-from models.schema import (
+from schemas.schema import (
     AccessModel,
     APIType,
     AppRecord,

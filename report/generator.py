@@ -11,7 +11,7 @@ import logging
 from pathlib import Path
 from datetime import datetime
 
-from models.schema import AppRecord, InsightStats, VerificationLog
+from schemas.schema import AppRecord, InsightStats, VerificationLog
 
 logger = logging.getLogger(__name__)
 
@@ -100,6 +100,12 @@ def _str(v) -> str:
     """Helper to extract enum string values reliably."""
     return v.value if hasattr(v, 'value') else str(v)
 
+def _proper(v) -> str:
+    """Helper to convert strings like 'needs-human' to 'Needs Human'."""
+    s = _str(v)
+    if not s or s.lower() == "none": return "None"
+    return " ".join(w.capitalize() for w in s.replace("-", " ").split())
+
 def _render_table_rows(records: list[AppRecord]) -> str:
     rows = []
     for r in records:
@@ -116,13 +122,13 @@ def _render_table_rows(records: list[AppRecord]) -> str:
             if r.evidence_url else "—"
         )
         blocker_html = (
-            f'<span style="color:#f87171;font-size:11px">{_str(r.blocker)}</span>'
+            f'<span style="color:#f87171;font-size:11px">{_proper(r.blocker)}</span>'
             if _str(r.blocker) not in ("none", "unknown") else
             '<span style="color:#6b7280;font-size:11px">—</span>'
         )
-        v_status = _str(r.verification_status)
-        v_color = {"confirmed": "#10b981", "corrected": "#f59e0b",
-                   "needs-human": "#f97316", "human-checked": "#6366f1"}.get(v_status, "#6b7280")
+        v_status = _proper(r.verification_status)
+        v_color = {"Confirmed": "#10b981", "Corrected": "#f59e0b",
+                   "Needs Human": "#f97316", "Human Checked": "#6366f1"}.get(v_status, "#6b7280")
 
         rows.append(f"""
         <tr data-category="{r.category}" data-auth="{','.join(_str(m) for m in r.auth_methods)}"
@@ -135,7 +141,7 @@ def _render_table_rows(records: list[AppRecord]) -> str:
           <td style="font-size:11px;color:#d1d5db">{r.category}</td>
           <td>{auth_html}</td>
           <td>{access_html}</td>
-          <td style="font-size:11px;color:#d1d5db">{api_types}<br><small style="color:#6b7280">{_str(r.api_surface.breadth)}</small></td>
+          <td style="font-size:11px;color:#d1d5db">{api_types}<br><small style="color:#6b7280">{_proper(r.api_surface.breadth)}</small></td>
           <td>{buildable_html}</td>
           <td>{mcp_html}</td>
           <td style="font-size:11px;color:#9ca3af">{blocker_html}</td>
@@ -256,7 +262,7 @@ def generate_report(
 
     # ── Top blockers ───────────────────────────────────────────────────────
     blocker_rows = "".join(
-        f"<tr><td>{b['blocker']}</td><td>{b['count']}</td>"
+        f"<tr><td>{_proper(b['blocker'])}</td><td>{b['count']}</td>"
         f"<td><div style='background:#ef4444;height:8px;border-radius:4px;width:{min(b['count']*15,200)}px'></div></td></tr>"
         for b in stats.top_blockers
     )

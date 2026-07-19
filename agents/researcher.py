@@ -24,7 +24,7 @@ from config import (
     LLM_MAX_TOKENS,
     LLM_TEMPERATURE,
 )
-from models.schema import (
+from schemas.schema import (
     AccessModel,
     APIType,
     AppRecord,

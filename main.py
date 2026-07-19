@@ -79,7 +79,7 @@ def verify(force: bool, auto: bool):
 def insights():
     """Generate insights from verified results — outputs insights.json."""
     from config import PASS2_PATH, RAW_PASS1_PATH, INSIGHTS_PATH
-    from models.schema import AppRecord
+    from schemas.schema import AppRecord
     from agents.insight_generator import generate_insights, save_insights
 
     source = PASS2_PATH if PASS2_PATH.exists() else RAW_PASS1_PATH
@@ -98,7 +98,7 @@ def insights():
 def report():
     """Generate the HTML report from existing results."""
     from config import PASS2_PATH, RAW_PASS1_PATH, INSIGHTS_PATH, VERIFY_LOG_PATH, REPORT_HTML_PATH
-    from models.schema import AppRecord, InsightStats, VerificationLog
+    from schemas.schema import AppRecord, InsightStats, VerificationLog
     from agents.insight_generator import generate_insights
     from report.generator import generate_report
 
@@ -131,7 +131,7 @@ def export():
     """Export results as CSV."""
     import csv
     from config import PASS2_PATH, RAW_PASS1_PATH, OUTPUT_DIR
-    from models.schema import AppRecord
+    from schemas.schema import AppRecord
 
     source = PASS2_PATH if PASS2_PATH.exists() else RAW_PASS1_PATH
     if not source.exists():

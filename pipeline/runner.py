@@ -25,7 +25,7 @@ from config import (
     RAW_PASS1_PATH,
     VERIFY_LOG_PATH,
 )
-from models.schema import AppRecord, VerificationLog, VerificationStatus
+from schemas.schema import AppRecord, VerificationLog, VerificationStatus
 
 logger = logging.getLogger(__name__)
 console = Console()

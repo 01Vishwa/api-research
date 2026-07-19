@@ -56,7 +56,7 @@ RAW_PASS1_PATH      = OUTPUT_DIR / "raw_pass1.json"
 PASS2_PATH          = OUTPUT_DIR / "pass2_verified.json"
 INSIGHTS_PATH       = OUTPUT_DIR / "insights.json"
 VERIFY_LOG_PATH     = OUTPUT_DIR / "verification_log.json"
-REPORT_HTML_PATH    = ROOT_DIR / "report.html"
+REPORT_HTML_PATH    = ROOT_DIR / "report" / "report.html"
 PIPELINE_LOG_PATH   = LOG_DIR / "pipeline.log"
 
 # ─── Composio user id ────────────────────────────────────────────────────────
